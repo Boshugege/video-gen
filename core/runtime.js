@@ -7,6 +7,7 @@ import { validateTimeline, frameCount, frameToSec } from './timeline.js';
 import { loadFonts, fontsBusy } from './fonts.js';
 import { renderOffline, SAMPLE_RATE } from './audio.js';
 import { drawSubtitles, subtitleText } from './subtitles.js';
+import { loadAssets } from './assets.js';
 
 const ID_RE = /^[A-Za-z0-9_][A-Za-z0-9_-]*$/;
 
@@ -45,6 +46,8 @@ export async function createRuntime(ep, { canvas, mode = 'render', draft = false
     mode,
     preset,
     episode: { id: ep.id, title: ep.title },
+    // 素材在 setup 之前加载完：setup 里就能用配音时长排场景。
+    assets: await loadAssets(ep.assets, { episodeId: ep.id, sampleRate: preset.encode.sampleRate }),
   };
   const timeline = deepFreeze(validateTimeline(await ep.setup(Object.freeze({ ...base }))));
   const frames = frameCount(timeline.duration, base.fps);
@@ -131,6 +134,7 @@ export async function createRuntime(ep, { canvas, mode = 'render', draft = false
         encode: preset.encode,
         plugins: plugins.map(p => p.name),
         hasAudio: !!ep.renderAudio || plugins.some(p => p.audio),
+        assets: env.assets.manifest(),
         timeline,
       };
     },

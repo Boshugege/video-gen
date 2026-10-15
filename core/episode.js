@@ -9,6 +9,7 @@
 //     setup(env) → timeline,                 // 必填。可 async。构建时间轴（唯一数据源）
 //     renderFrame(ctx, t, env),              // 必填。同步。画出时刻 t 的画面，只能依赖 t 和 env
 //     renderAudio(ac, out, env),             // 可选。往 OfflineAudioContext 排声音，接到 out
+//     assets: { photo: 'assets/a.jpg', bgm: { src: 'assets/bgm.mp3', license } },  // 可选。图片和音频素材，见 core/assets.js
 //     fonts: { stylesheets, faces, text } | (env) => {...},   // 可选。渲染前必须加载好的字体
 //     plugins: [progressBar(), ...],         // 可选。钩子型插件
 //     cover: { t } | { render(ctx, env) },   // 可选。封面取哪一帧，或单独画
@@ -19,6 +20,9 @@
 //   width, height  实际输出像素（草稿时更小），scale = width / W，运行时已经帮你 setTransform
 //   fps, frames, duration, draft, mode ('render' | 'preview' | 'cover')
 //   preset, timeline, episode: { id, title }
+//   assets         已加载的素材：assets.image(name) / assets.audio(name) / assets.meta(name)
+
+import { normalizeAssets } from './assets.js';
 
 export function defineEpisode(def) {
   const errs = [];
@@ -31,6 +35,7 @@ export function defineEpisode(def) {
   if (def.renderAudio && typeof def.renderAudio !== 'function') errs.push('renderAudio 必须是函数');
   if (def.cover && !(typeof def.cover.t === 'number' || typeof def.cover.render === 'function')) errs.push('cover 需要 { t } 或 { render(ctx, env) }');
   for (const p of def.plugins || []) if (!p || !p.__plugin) errs.push('plugins 里的每一项都必须由 definePlugin() 创建');
+  try { normalizeAssets(def.assets); } catch (e) { errs.push(e.message); }
   if (errs.length) throw new Error(`episode "${def.id}" 不合法：\n  - ` + errs.join('\n  - '));
   return Object.freeze({ plugins: [], ...def, __episode: true });
 }

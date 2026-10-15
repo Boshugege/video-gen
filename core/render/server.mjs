@@ -20,6 +20,16 @@ const MIME = {
   '.svg': 'image/svg+xml',
   '.wav': 'audio/wav',
   '.mp3': 'audio/mpeg',
+  '.m4a': 'audio/mp4',
+  '.aac': 'audio/aac',
+  '.ogg': 'audio/ogg',
+  '.oga': 'audio/ogg',
+  '.opus': 'audio/ogg',
+  '.flac': 'audio/flac',
+  '.aif': 'audio/aiff',
+  '.aiff': 'audio/aiff',
+  '.gif': 'image/gif',
+  '.avif': 'image/avif',
   '.mp4': 'video/mp4',
   '.woff2': 'font/woff2',
   '.woff': 'font/woff',
@@ -44,7 +54,7 @@ export function startServer({ port = 0, watch = false } = {}) {
     let timer = null;
     const changed = new Set();
     watcher = fs.watch(ROOT, { recursive: true }, (_, file) => {
-      if (!file || /^(out|node_modules|\.cache|\.git)[\\/]/.test(file) || !/\.(js|json|html|css|png|jpg|webp|wav|mp3|woff2?)$/.test(file)) return;
+      if (!file || /^(out|node_modules|\.cache|\.git)[\\/]/.test(file) || !/\.(js|json|html|css|png|jpe?g|webp|gif|avif|svg|wav|mp3|m4a|aac|ogg|oga|opus|flac|aiff?|woff2?)$/i.test(file)) return;
       changed.add(file);
       clearTimeout(timer);
       timer = setTimeout(() => {

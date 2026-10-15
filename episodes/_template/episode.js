@@ -7,6 +7,7 @@
 //      也不要在帧与帧之间保存状态（渲染器会乱序、并行地调用它）
 //   3. 一律按 env.W × env.H（竖屏 1080×1920）的逻辑坐标画，草稿模式运行时会自动缩放
 //   4. 模块顶层不要碰 DOM（Node 端的测试会 import 它）
+//   5. 图片、背景音乐、配音放在本目录的 assets/ 里，在 assets: {...} 里声明（见文件末尾的示例）
 import { defineEpisode } from '../../core/episode.js';
 import { createTimeline, sceneAt } from '../../core/timeline.js';
 import { createRoom, scaleMidi, midiToFreq } from '../../core/audio.js';
@@ -68,3 +69,37 @@ export default defineEpisode({
     }
   },
 });
+
+/* ---------- 素材用法示例（图片 + 背景音乐 + 配音）----------
+完整可运行的例子见 episodes/_asset-test/episode.js。
+
+import { eventsOn } from '../../core/timeline.js';
+import { playClip, duck } from '../../core/audio.js';
+import { kenBurns } from '../../plugins/images/index.js';
+
+  assets: {
+    photo: 'assets/photo.jpg',
+    bgm: { src: 'assets/bgm.mp3', source: '音乐来源', license: '授权方式' },
+    vo1: 'assets/vo-01.wav',
+  },
+
+  setup(env) {
+    const tl = createTimeline();
+    const vo = env.assets.meta('vo1');                 // 素材在 setup 之前就加载好了
+    const s = tl.scene('line-1', vo.duration + 0.8);   // 场景长度跟着配音走
+    tl.event('voice', s.start + 0.3, { asset: 'vo1' }, vo.duration);
+    tl.subtitle(s.start + 0.3, s.start + 0.3 + vo.duration, { zh: '配音文案', en: 'Voice-over line' });
+    return tl.build();
+  },
+
+  renderFrame(ctx, t, env) {
+    kenBurns(ctx, env.assets.image('photo'), t, { w: env.W, h: env.H, duration: env.duration });
+  },
+
+  renderAudio(ac, out, env) {
+    const voice = eventsOn(env.timeline, 'voice');
+    const bgm = playClip(ac, out, env.assets.audio('bgm'), { loop: true, gain: 0.6, fadeIn: 1, fadeOut: 2 });
+    duck(bgm.level.gain, voice.map(e => [e.t, e.t + e.dur]), { level: 0.3 });   // 配音时压低背景音乐
+    for (const e of voice) playClip(ac, out, env.assets.audio(e.data.asset), { at: e.t });
+  },
+*/

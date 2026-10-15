@@ -15,6 +15,7 @@
     "preview": "node cli/preview.mjs",
     "render": "node cli/render.mjs",
     "cover": "node cli/cover.mjs",
+    "assets": "node cli/assets.mjs",
     "check:sync": "node cli/check-sync.mjs",
     "plugins": "node cli/plugins.mjs",
     "test": "node --test test/*.test.mjs"

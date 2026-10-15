@@ -96,6 +96,7 @@ input[type=checkbox] { accent-color: var(--accent); }
 .box { background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; }
 .box h3 { margin: 0 0 4px; font-size: 11px; letter-spacing: .12em; color: var(--muted); font-weight: 500; }
 .sub .zh { font-size: 15px; }
+.assets { white-space: pre-wrap; font-size: 12px; overflow-wrap: anywhere; }
 .sub .en { color: var(--muted); }
 .keys summary { cursor: pointer; color: var(--muted); }
 .keys dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 8px 0 0; }

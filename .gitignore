@@ -7,14 +7,24 @@ out/
 # Google Fonts 等下载缓存
 .cache/
 
-# 媒体文件一律不追踪（素材请放网盘或 Git LFS）
+# 音频 / 视频文件一律不追踪：成片在 out/；背景音乐、配音等音频素材可能有版权限制（本仓库公开），
+# 体积也大，放在本地 episodes/<id>/assets/，用 npm run assets 检查是否齐全。图片素材（<5MB）可以提交。
 *.mp4
 *.mov
-*.m4a
 *.webm
 *.wav
-*.aiff
 *.mp3
+*.m4a
+*.aac
+*.ogg
+*.oga
+*.opus
+*.flac
+*.aif
+*.aiff
+
+# 例外：_asset-test 的测试素材由 make-assets.mjs 合成，体积很小，没有版权问题
+!episodes/_asset-test/assets/*
 
 # 系统 / 编辑器
 .DS_Store

@@ -64,6 +64,9 @@ export async function renderEpisode(id, opts = {}) {
     const info = main.info;
     log(`▶ ${info.title}（${id}）${draft ? ' [草稿]' : ''}`);
     log(`  ${info.preset} · ${info.width}×${info.height} @ ${info.fps}fps · ${info.frames} 帧 · ${info.duration.toFixed(3)}s`);
+    if (info.assets.length) {
+      log(`  ▤ 素材 ${info.assets.length} 个：` + info.assets.map(a => `${a.name}（${a.type === 'image' ? `${a.width}×${a.height}` : `${a.duration.toFixed(3)}s`}）`).join(' · '));
+    }
 
     // 声音：与画面同一条时间轴，长度精确到帧。
     const a = await main.audio({ sampleRate: info.encode.sampleRate, bitDepth: 24 });
@@ -79,6 +82,9 @@ export async function renderEpisode(id, opts = {}) {
     for (const h of extra) {
       if (h.info.frames !== info.frames || JSON.stringify(h.info.timeline) !== JSON.stringify(info.timeline)) {
         throw new Error('各渲染页的 setup() 结果不一致：setup 也必须是确定性的');
+      }
+      if (JSON.stringify(h.info.assets) !== JSON.stringify(info.assets)) {
+        throw new Error('各渲染页加载到的素材不一致（渲染期间素材文件被改动了？）');
       }
     }
     log(`  ⚙ ${n} 个渲染页并行`);
@@ -150,6 +156,7 @@ export async function renderEpisode(id, opts = {}) {
       cover: { t: cover.t ?? 'cover.render' },
       audio: { sampleRate: a.sampleRate, peak: +a.peak.toFixed(4) },
       subtitles: info.timeline.subtitles.length,
+      assets: info.assets,
       plugins: info.plugins,
       verify,
       warnings,

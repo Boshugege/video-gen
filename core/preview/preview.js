@@ -391,13 +391,22 @@ function bindLiveReload() {
   es.onerror = () => live.classList.add('off');
   es.onmessage = e => {
     const files = JSON.parse(e.data);
-    const relevant = files.some(f => f.startsWith(`episodes/${epId}/`) || /^(core|plugins|presets)\//.test(f));
+    const relevant = files.some(f => f.startsWith(`episodes/${epId}/`) || /^(core|plugins|presets|assets)\//.test(f));
     if (relevant) {
       clearTimeout(hashTimer);
       history.replaceState(null, '', `${location.pathname}${location.search}#t=${snap(state.t).toFixed(4)}${state.in != null && state.out != null ? `&in=${state.in}&out=${state.out}` : ''}`);
       location.reload();
     }
   };
+}
+
+function showAssets() {
+  const list = env.assets.manifest();
+  const box = $('assetInfo');
+  if (!list.length) { box.textContent = '（未使用素材）'; return; }
+  box.textContent = list
+    .map(a => `${a.name}  ${a.type === 'image' ? `${a.width}×${a.height}` : `${a.duration.toFixed(2)}s`}  ${a.src}`)
+    .join('\n');
 }
 
 /* ---------- 启动 ---------- */
@@ -419,6 +428,7 @@ async function boot() {
   $('cv').style.aspectRatio = `${env.width} / ${env.height}`;
   $('epMeta').textContent = `${env.episode.title} · ${env.preset.label} · ${env.width}×${env.height} @ ${env.fps}fps · ${env.frames} 帧 · ${env.duration.toFixed(2)}s${draft ? ' · 草稿' : ''}`;
   drawSafeArea();
+  showAssets();
   restoreHash();
   bindControls();
   bindScrub();
