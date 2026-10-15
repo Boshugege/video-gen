@@ -1,0 +1,19 @@
+#!/bin/sh
+# 拦截超过上限（默认 5MB）的文件进入 git。成片在 out/（已忽略），大素材请用网盘或 Git LFS。
+# 临时调整上限：VIDEO_GEN_MAX_FILE_MB=20 git commit ...　确实要提交：git commit --no-verify
+limit=${VIDEO_GEN_MAX_FILE_MB:-5}
+max=$((limit * 1024 * 1024))
+
+big=$(git diff --cached --name-only --diff-filter=AM | while IFS= read -r f; do
+  size=$(git cat-file -s ":$f" 2>/dev/null || echo 0)
+  if [ "$size" -gt "$max" ]; then
+    echo "  $f ($((size / 1024 / 1024)) MB)"
+  fi
+done)
+
+if [ -n "$big" ]; then
+  echo "✗ 以下文件超过 ${limit}MB，不应提交到 git："
+  echo "$big"
+  echo "成片放在 out/（已被 .gitignore 忽略）；大素材请用网盘或 Git LFS。确实需要提交：git commit --no-verify"
+  exit 1
+fi

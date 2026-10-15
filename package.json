@@ -1,0 +1,25 @@
+{
+  "name": "video-gen",
+  "version": "0.1.0",
+  "private": true,
+  "description": "可复用的竖屏/横屏短视频离线渲染工具箱：Canvas 逐帧渲染 + OfflineAudioContext 合成 + ffmpeg 封装",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "setup": "brew list ffmpeg >/dev/null 2>&1 || brew install ffmpeg; npm install && npx playwright install chromium",
+    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true",
+    "doctor": "node cli/doctor.mjs",
+    "new": "node cli/new.mjs",
+    "preview": "node cli/preview.mjs",
+    "render": "node cli/render.mjs",
+    "cover": "node cli/cover.mjs",
+    "check:sync": "node cli/check-sync.mjs",
+    "plugins": "node cli/plugins.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

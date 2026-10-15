@@ -1,0 +1,26 @@
+# video-gen
+
+可复用的竖屏 / 横屏短视频离线渲染工具箱。画面用 Canvas 逐帧绘制，声音由 Web Audio 离线合成，最后用 ffmpeg 封装：
+
+- 画面只由时间 `t` 决定，由无头 Chromium 按 1/fps 逐帧渲染，多页并行；
+- 声音用 `OfflineAudioContext` 按同一条时间轴合成，长度精确到帧；
+- 输出 H.264 + AAC、yuv420p、+faststart 的 MP4，默认 1080×1920 @30fps，可以直接上传抖音、小红书、Reels、Shorts；
+- 渲染完自动用 ffprobe 校验帧数、时长、音视频对齐。
+
+```bash
+npm run setup                                   # brew 装 ffmpeg + npm install + Playwright Chromium
+npm run new -- W43 rain-letters                 # 新建一期
+npm run preview -- 2026-W43-rain-letters        # 预览：拖时间轴、逐帧、只试听某一段
+npm run render -- 2026-W43-rain-letters --draft # 540×960 @15fps 快速出样
+npm run render -- 2026-W43-rain-letters         # 成片 → out/<episode>/video.mp4、subtitles.srt、cover.png
+```
+
+episode 接口、模块清单和每周流程见 [CLAUDE.md](CLAUDE.md)。
+
+## 已有的期数
+
+| 期 | 说明 |
+|---|---|
+| `2026-W42-sound-flowers` | 声音之花：8 种语言的"我想你"变成旋律和花形，57.5 秒 |
+| `_sync-test` | 音画同步测试：每秒一次闪白 + 嘀声 |
+| `_template` | 新一期模板 |

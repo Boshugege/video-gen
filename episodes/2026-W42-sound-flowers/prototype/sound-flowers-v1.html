@@ -1,0 +1,518 @@
+<title>声音之花</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Naskh+Arabic:wght@500;700&family=Noto+Serif+KR:wght@500;700&family=Noto+Serif+SC:wght@500;700&display=swap">
+<style>
+/* Layout: a 9:16 stage on the left like a phone screen, a narrow control strip on the right; stacks on phones. Deliberate single dark look: a dim recording studio. */
+:root{
+  --ink:#0e0f1d;
+  --panel:#161730;
+  --raise:#1f2142;
+  --line:#2c2f55;
+  --fg:#ecebf6;
+  --muted:#9b9dc4;
+  --accent:#f0b3c3;
+  --danger:#ff8a8a;
+  --display:"Noto Serif SC","Noto Serif KR","Noto Naskh Arabic",serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--ink);color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:minmax(0,430px) minmax(0,1fr);gap:32px;align-items:start}
+@media (max-width:860px){.wrap{grid-template-columns:minmax(0,1fr)}}
+.stage{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);display:flex;flex-direction:column;gap:12px}
+@media (max-width:860px){.stage{position:static}}
+canvas{width:100%;max-width:100%;aspect-ratio:9/16;border-radius:18px;background:#0b0c18;display:block;box-shadow:0 20px 60px rgba(0,0,0,.45),0 0 0 1px var(--line)}
+.transport{display:flex;flex-wrap:wrap;gap:8px}
+.status{font-family:var(--mono);font-size:12px;color:var(--muted);min-height:1.5em}
+.status b{color:var(--accent);font-weight:500}
+header h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:1.1;margin:0 0 6px;text-wrap:balance;letter-spacing:.02em}
+header p{margin:0;color:var(--muted);max-width:60ch}
+.side{display:flex;flex-direction:column;gap:28px;min-width:0}
+h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:0 0 10px;font-family:var(--mono)}
+button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--raise);color:var(--fg);padding:8px 14px;border-radius:999px;cursor:pointer;transition:background .15s,border-color .15s}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:#2a1220;border-color:var(--accent);font-weight:600}
+button.primary:hover{filter:brightness(1.06)}
+button.rec{border-color:var(--danger);color:var(--danger)}
+button.rec.on{background:var(--danger);color:#2a0d0d}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.small{padding:4px 10px;font-size:12px}
+.list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.row{display:grid;grid-template-columns:auto 14px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row.playing{background:var(--raise)}
+.dot{width:14px;height:14px;border-radius:50%}
+.row .t{min-width:0}
+.row .lang{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em}
+.row .txt{font-family:var(--display);font-size:18px;overflow-wrap:anywhere}
+.row .lit{font-size:12px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.chip{font-family:var(--mono);font-size:11px;padding:1px 6px;border-radius:6px;background:var(--ink);border:1px solid var(--line);color:var(--fg)}
+.row .acts{display:flex;gap:6px}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
+form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+@media (max-width:520px){form{grid-template-columns:minmax(0,1fr)}}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+label.full{grid-column:1/-1}
+label.inline{flex-direction:row;align-items:center;gap:8px}
+input[type=text]{font:inherit;font-size:14px;color:var(--fg);background:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+.rules{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:10px 0 12px}
+.key{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
+.key b{display:block;font-family:var(--mono);font-size:18px;font-weight:500}
+.key span{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.notes{color:var(--muted);margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;max-width:62ch}
+.hint{font-size:12px;color:var(--muted);margin:8px 0 0}
+@media (prefers-reduced-motion:reduce){button{transition:none}}
+</style>
+
+<div class="wrap">
+  <div class="stage">
+    <canvas id="cv" width="1080" height="1920" aria-label="声音之花画面"></canvas>
+    <div class="transport">
+      <button class="primary" id="btnFilm">▶ 播放成片</button>
+      <button id="btnStop" disabled>■ 停止</button>
+      <button class="rec" id="btnRec">↓ 下载视频</button>
+      <button id="btnSave" hidden>再次保存</button>
+    </div>
+    <div class="status" id="status">静止画面：所有句子的花叠在一起。点"播放成片"开始。</div>
+  </div>
+
+  <div class="side">
+    <header>
+      <h1>声音之花</h1>
+      <p>把一句话按固定规则变成旋律和花形。每个音节是一个音符，也是一片花瓣。可以试听单句、播放约 1 分钟的竖屏成片，并一键下载成视频文件。</p>
+    </header>
+
+    <section>
+      <h2>句子 · 勾选的会进入成片</h2>
+      <div class="list" id="list"></div>
+      <p class="hint">"试听"只播放这一句。顺序就是成片里的出场顺序。</p>
+    </section>
+
+    <section>
+      <h2>加一句</h2>
+      <form id="addForm">
+        <label>语言名<input type="text" id="fLang" placeholder="Deutsch" required></label>
+        <label>原文<input type="text" id="fText" placeholder="Ich vermisse dich" required></label>
+        <label class="full">音节（可选，用空格分开；非拉丁文字建议填罗马拼音）<input type="text" id="fRoman" placeholder="ich ver mis se dich"></label>
+        <label>中文直译<input type="text" id="fZh" placeholder="直译：我想念你"></label>
+        <label>英文直译<input type="text" id="fEn" placeholder="Literally: I miss you"></label>
+        <label class="inline full"><input type="checkbox" id="fRtl"> 从右往左书写（花瓣也逆时针生长）</label>
+        <div class="full"><button class="primary" type="submit">加入列表</button></div>
+      </form>
+    </section>
+
+    <section>
+      <h2>映射规则</h2>
+      <div class="rules">
+        <div class="key"><b>a</b><span>C</span></div>
+        <div class="key"><b>e</b><span>D</span></div>
+        <div class="key"><b>i · y</b><span>E</span></div>
+        <div class="key"><b>o</b><span>G</span></div>
+        <div class="key"><b>u</b><span>A</span></div>
+      </div>
+      <ul class="notes">
+        <li>每个音节取第一个元音定音高，全部落在 C 大调五声音阶上，所以几段旋律同时播放也不会刺耳。</li>
+        <li>音节里辅音达到 2 个，升高一个八度；辅音越多，音越短；句尾音拉长。</li>
+        <li>每个音节画一片花瓣：音越高，花瓣越长；音越长，花瓣越宽。整组花瓣按对称重复，音节少的句子重复次数多。</li>
+        <li>没填音节、又不是拉丁字母的句子，每个字算一个音节，音高按字符编码取。</li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const W=1080,H=1920,CX=540,CY=880,R=330;
+const cv=document.getElementById('cv');
+const ctx=cv.getContext('2d');
+const $=id=>document.getElementById(id);
+const DISPLAY='"Noto Serif SC","Noto Serif KR","Noto Naskh Arabic",serif';
+const MONO='"IBM Plex Mono",ui-monospace,monospace';
+const HUES=[346,18,42,150,188,214,258,298,8,120,230,320];
+
+const PRESETS=[
+ {lang:'中文',text:'我想你',roman:'wo xiang ni',zh:'"想"也是"思考"',en:'Literally: I think of you'},
+ {lang:'Français',text:'Tu me manques',roman:'tu me mank',zh:'直译：你从我这里缺席了',en:'Literally: You are missing from me'},
+ {lang:'Español',text:'Te extraño',roman:'te eks tra nyo',zh:'"extrañar"与"陌生"同源',en:'From the word for "strange"'},
+ {lang:'日本語',text:'会いたい',roman:'a i ta i',zh:'直译：想见面',en:'Literally: I want to meet you'},
+ {lang:'한국어',text:'보고 싶어',roman:'bo go si peo',zh:'直译：想看见你',en:'Literally: I want to see you'},
+ {lang:'Kiswahili',text:'Nakukumbuka',roman:'na ku kum bu ka',zh:'直译：我记得你',en:'Literally: I remember you'},
+ {lang:'العربية',text:'اشتقت إليك',roman:'ish taq tu i layk',zh:'直译：我渴望过你',en:'Literally: I longed for you',rtl:true},
+ {lang:'Português',text:'Saudades de você',roman:'sau da des de vo ce',zh:'saudade：一种无法翻译的思念',en:'Saudade: a longing with no translation'},
+];
+
+/* ---------- text -> notes ---------- */
+const VOW={a:0,e:1,i:2,y:2,o:3,u:4};
+const isV=c=>c in VOW;
+function clean(s){return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+function syllabifyWord(w){
+  const vs=[];const re=/[aeiouy]+/g;let m;
+  while((m=re.exec(w)))vs.push([m.index,m.index+m[0].length]);
+  if(!vs.length)return w?[w]:[];
+  const cuts=[0];
+  for(let k=1;k<vs.length;k++){const a=vs[k-1][1],b=vs[k][0];cuts.push(b-a<=1?a:a+1);}
+  cuts.push(w.length);
+  const out=[];for(let k=0;k<cuts.length-1;k++)out.push(w.slice(cuts[k],cuts[k+1]));
+  return out;
+}
+function syllables(item){
+  if(item.roman&&item.roman.trim())return clean(item.roman).split(/\s+/).filter(Boolean);
+  const c=clean(item.text);
+  if(/^[a-z\s'’\-.,!?]+$/.test(c))return c.replace(/[^a-z\s]/g,' ').split(/\s+/).filter(Boolean).flatMap(syllabifyWord);
+  return [...item.text].filter(ch=>/\S/.test(ch)&&!/[\p{P}]/u.test(ch)).map(ch=>'#'+ch.codePointAt(0));
+}
+function toNotes(item){
+  const syl=syllables(item);let t=0;
+  const notes=syl.map((s,i)=>{
+    let v,cons;
+    if(s[0]==='#'){const cp=+s.slice(1);v=cp%5;cons=(cp>>3)%3;}
+    else{const f=[...s].find(isV);v=f?VOW[f]:2;cons=[...s].filter(c=>/[a-z]/.test(c)&&!isV(c)).length;}
+    const p=v+(cons>=2?5:0);
+    let dur=Math.min(.5,Math.max(.2,.42-.05*cons));
+    if(i===syl.length-1)dur*=1.8;
+    const n={s:s[0]==='#'?String.fromCodePoint(+s.slice(1)):s,p,dur,t};
+    t+=dur+.04;return n;
+  });
+  return {notes,len:t};
+}
+const SCALE=[261.63,293.66,329.63,392.00,440.00];
+const freq=p=>SCALE[p%5]*(p>=5?2:1);
+const NOTE_NAMES=['C','D','E','G','A'];
+
+/* ---------- state ---------- */
+let items=load()||PRESETS.map(p=>({...p,on:true}));
+function prep(){items.forEach((it,i)=>{const r=toNotes(it);it.notes=r.notes;it.len=r.len;it.hue=HUES[i%HUES.length];});}
+prep();
+function save(){try{localStorage.setItem('sf-items',JSON.stringify(items.map(({notes,len,hue,...r})=>r)));}catch(e){}}
+function load(){try{const s=localStorage.getItem('sf-items');return s?JSON.parse(s):null;}catch(e){return null;}}
+
+/* ---------- audio ---------- */
+let actx=null,master=null,recDest=null,bus=null,spk=null;
+function ensureAudio(){
+  if(actx)return;
+  actx=new (window.AudioContext||window.webkitAudioContext)();
+  master=actx.createGain();master.gain.value=.9;
+  const comp=actx.createDynamicsCompressor();
+  const dry=actx.createGain();dry.gain.value=.75;
+  const wet=actx.createGain();wet.gain.value=.45;
+  const conv=actx.createConvolver();
+  const len=actx.sampleRate*2.6,ir=actx.createBuffer(2,len,actx.sampleRate);
+  for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.4);}
+  conv.buffer=ir;
+  master.connect(dry);master.connect(conv);conv.connect(wet);
+  dry.connect(comp);wet.connect(comp);spk=actx.createGain();comp.connect(spk);spk.connect(actx.destination);
+  recDest=actx.createMediaStreamDestination();comp.connect(recDest);
+}
+function newBus(){if(bus){try{bus.disconnect();}catch(e){}}bus=actx.createGain();bus.connect(master);return bus;}
+function playNote(at,p,dur,vol,detune){
+  const f=freq(p);
+  const g=actx.createGain();g.connect(bus);
+  const o1=actx.createOscillator();o1.type='triangle';o1.frequency.value=f;o1.detune.value=detune;
+  const o2=actx.createOscillator();o2.type='sine';o2.frequency.value=f*2;o2.detune.value=detune;
+  const g2=actx.createGain();g2.gain.value=.18;
+  o1.connect(g);o2.connect(g2);g2.connect(g);
+  const end=at+dur*2.2+.5;
+  g.gain.setValueAtTime(0,at);
+  g.gain.linearRampToValueAtTime(vol,at+.012);
+  g.gain.exponentialRampToValueAtTime(vol*.35,at+dur);
+  g.gain.exponentialRampToValueAtTime(.0008,end);
+  o1.start(at);o2.start(at);o1.stop(end+.05);o2.stop(end+.05);
+}
+function scheduleMelody(it,at,vol,idx){it.notes.forEach(n=>playNote(at+n.t,n.p,n.dur,vol,(idx%3-1)*4));}
+
+/* ---------- timeline ---------- */
+const INTRO=4,PER=5,ENS=9,END=4.5,MEL_OFF=.7,ENS_MEL=1.6;
+let mode='poster',t0=0,run=null,raf=0,soloItem=null;
+function film(){
+  const list=items.filter(i=>i.on);
+  const E=INTRO+PER*list.length;
+  return {list,E,total:E+ENS+END};
+}
+function now(){return actx?actx.currentTime-t0:0;}
+
+/* ---------- drawing ---------- */
+const ease=x=>1-Math.pow(1-Math.min(1,Math.max(0,x)),3);
+const lerp=(a,b,t)=>a+(b-a)*t;
+function bg(){
+  const g=ctx.createRadialGradient(CX,CY,60,CX,CY,1300);
+  g.addColorStop(0,'#1b1c3a');g.addColorStop(.55,'#101126');g.addColorStop(1,'#08080f');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.globalAlpha=.32;ctx.fillStyle='#9b9dc4';ctx.font='500 26px '+MONO;ctx.textAlign='center';
+  ctx.fillText('声音之花 · SOUND FLOWERS',CX,H-70);ctx.restore();
+}
+function symm(n){return n<=3?5:n<=5?3:2;}
+function drawFlower(it,cx,cy,r,tau,o){
+  o=o||{};const alpha=o.alpha??1,rot=o.rot||0;
+  const n=it.notes.length;if(!n||r<1)return;
+  const m=symm(n),dir=it.rtl?-1:1;
+  ctx.save();ctx.translate(cx,cy);ctx.globalAlpha=alpha;
+  if(o.add)ctx.globalCompositeOperation='screen';
+  for(let i=0;i<n;i++){
+    const nt=it.notes[i];
+    const g=tau==null?1:ease((tau-nt.t)/.35);
+    if(g<=0)continue;
+    const live=tau!=null&&tau>=nt.t&&tau<nt.t+nt.dur+.15;
+    const L=r*(.36+.64*(nt.p/9))*g*(live?1.05:1);
+    const w=.15+nt.dur*.55;
+    for(let j=0;j<m;j++){
+      const ang=rot+dir*((i/n)+j)/m*Math.PI*2-Math.PI/2;
+      const cr=L*.6;
+      const gr=ctx.createRadialGradient(0,0,0,0,0,Math.max(1,L));
+      gr.addColorStop(0,`hsla(${it.hue},90%,86%,${live?.95:.75})`);
+      gr.addColorStop(.6,`hsla(${it.hue},78%,${58+nt.p*2}%,${live?.75:.5})`);
+      gr.addColorStop(1,`hsla(${it.hue},70%,45%,.15)`);
+      ctx.fillStyle=gr;
+      ctx.strokeStyle=`hsla(${it.hue},90%,85%,${live?.9:.45})`;
+      ctx.lineWidth=Math.max(1,r/170);
+      ctx.beginPath();ctx.moveTo(0,0);
+      ctx.quadraticCurveTo(Math.cos(ang-w)*cr,Math.sin(ang-w)*cr,Math.cos(ang)*L,Math.sin(ang)*L);
+      ctx.quadraticCurveTo(Math.cos(ang+w)*cr,Math.sin(ang+w)*cr,0,0);
+      ctx.fill();ctx.stroke();
+      if(j===0&&r>120){
+        ctx.fillStyle=`hsla(${it.hue},95%,90%,${g})`;
+        ctx.beginPath();ctx.arc(Math.cos(ang)*(L+r*.06),Math.sin(ang)*(L+r*.06),r*.018,0,Math.PI*2);ctx.fill();
+      }
+    }
+  }
+  ctx.fillStyle=`hsla(${it.hue},95%,92%,.95)`;
+  ctx.beginPath();ctx.arc(0,0,r*.05,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+function text(s,x,y,size,o){
+  o=o||{};ctx.save();ctx.globalAlpha=o.alpha??1;ctx.fillStyle=o.color||'#ecebf6';
+  ctx.font=`${o.weight||500} ${size}px ${o.font||DISPLAY}`;ctx.textAlign='center';ctx.textBaseline='middle';
+  if(o.rtl)ctx.direction='rtl';
+  let fs=size;while(ctx.measureText(s).width>W-120&&fs>20){fs-=4;ctx.font=`${o.weight||500} ${fs}px ${o.font||DISPLAY}`;}
+  ctx.fillText(s,x,y);ctx.restore();
+}
+function thumbPos(k,count){
+  const cols=Math.min(count,5),row=Math.floor(k/cols),inRow=Math.min(cols,count-row*cols),c=k%cols;
+  return {x:CX+(c-(inRow-1)/2)*176,y:200+row*176,r:64};
+}
+function fade(u,a,b,inT,outT){if(u<a||u>b)return 0;return Math.min(1,(u-a)/inT,(b-u)/outT);}
+
+function drawPoster(){
+  bg();
+  const list=items.filter(i=>i.on);
+  list.forEach((it,k)=>drawFlower(it,CX,CY,R,null,{alpha:.42,rot:k*.11,add:true}));
+  text('我想你，有几种声音？',CX,1430,78,{weight:700});
+  text('One feeling. Many sounds.',CX,1520,38,{font:MONO,color:'#9b9dc4',weight:400});
+}
+function drawSolo(it,tau){
+  bg();
+  drawFlower(it,CX,CY,R,tau);
+  drawCaptions(it,tau+MEL_OFF,0,99);
+}
+function drawCaptions(it,u,a,b){
+  const al=fade(u,a+.2,b,.5,.5);
+  text(it.lang.toUpperCase(),CX,1345,30,{font:MONO,color:`hsl(${it.hue},80%,78%)`,alpha:al,weight:500});
+  text(it.text,CX,1445,96,{alpha:al,weight:700,rtl:it.rtl});
+  text(it.notes.map(n=>n.s).join(' · '),CX,1535,32,{font:MONO,color:'#9b9dc4',alpha:al,weight:400});
+  const al2=fade(u,a+1.4,b,.6,.5);
+  if(it.zh)text(it.zh,CX,1650,44,{alpha:al2});
+  if(it.en)text(it.en,CX,1720,32,{font:MONO,color:'#c9cae6',alpha:al2,weight:400});
+}
+function drawFilm(t){
+  const {list,E,total}=film();bg();
+  if(t<INTRO){
+    const u=t,pulse=.5+.5*Math.sin(u*Math.PI*2*70/60);
+    ctx.save();ctx.fillStyle=`rgba(240,179,195,${.4+.6*pulse})`;ctx.beginPath();ctx.arc(CX,CY,10+6*pulse,0,Math.PI*2);ctx.fill();ctx.restore();
+    const a=fade(u,.3,INTRO-.2,.6,.6);
+    text('如果「我想你」有声音，',CX,1280,72,{alpha:a,weight:700});
+    text('它听起来是什么样？',CX,1380,72,{alpha:a,weight:700});
+    text('What does "I miss you" sound like?',CX,1480,36,{font:MONO,color:'#9b9dc4',alpha:a,weight:400});
+    return;
+  }
+  if(t<E){
+    const k=Math.floor((t-INTRO)/PER),u=t-INTRO-k*PER,it=list[k];
+    for(let i=0;i<k;i++){const p=thumbPos(i,list.length);drawFlower(list[i],p.x,p.y,p.r,null,{alpha:.9});}
+    const tau=u-MEL_OFF;
+    const mv=ease((u-(PER-.7))/.7),p=thumbPos(k,list.length);
+    const a=Math.min(1,u/.4);
+    drawFlower(it,lerp(CX,p.x,mv),lerp(CY,p.y,mv),lerp(R,p.r,mv),tau,{alpha:a});
+    drawCaptions(it,u,0,PER-.6);
+    if(k===0){text('每个音节，一个音符，一片花瓣',CX,1790,28,{font:DISPLAY,color:'#9b9dc4',alpha:fade(u,.4,PER-.6,.5,.5)});}
+    return;
+  }
+  const u=t-E;
+  if(u<ENS){
+    const mv=ease(u/1.4);
+    list.forEach((it,k)=>{
+      const p=thumbPos(k,list.length);
+      const tau=u>=ENS_MEL?u-ENS_MEL:null;
+      drawFlower(it,lerp(p.x,CX,mv),lerp(p.y,CY,mv),lerp(p.r,R,mv),null,{alpha:lerp(.9,.42,mv),rot:(k%2?1:-1)*u*.06+k*.11,add:mv>.5});
+    });
+    // live glow on sounding notes
+    if(u>=ENS_MEL){const tau=u-ENS_MEL;list.forEach((it,k)=>{if(tau<it.len)drawFlower(it,CX,CY,R*1.02,tau,{alpha:.3,rot:(k%2?1:-1)*u*.06+k*.11,add:true});});}
+    const a=fade(u,3.4,ENS,.8,.6);
+    text('说法不同，',CX,1430,80,{alpha:a,weight:700});
+    text('想念是同一种。',CX,1530,80,{alpha:a,weight:700});
+    text('Different words. Same feeling.',CX,1630,36,{font:MONO,color:'#9b9dc4',alpha:a,weight:400});
+    return;
+  }
+  const v=u-ENS,sh=1-ease(v/1.3);
+  list.forEach((it,k)=>drawFlower(it,CX,CY,R*sh,null,{alpha:.42,rot:k*.11+ENS*.06,add:true}));
+  ctx.save();ctx.fillStyle='rgba(240,179,195,.9)';ctx.beginPath();ctx.arc(CX,CY,8,0,Math.PI*2);ctx.fill();ctx.restore();
+  const a=fade(v,1,END+1,.6,.01);
+  text('下一句，想听什么？',CX,1150,76,{alpha:a,weight:700});
+  text('What should I turn into music next?',CX,1245,34,{font:MONO,color:'#9b9dc4',alpha:a,weight:400});
+  ctx.save();ctx.globalAlpha=a;ctx.strokeStyle='#3a3d6a';ctx.lineWidth=3;
+  ctx.beginPath();ctx.roundRect(CX-330,1330,660,110,55);ctx.stroke();
+  if(Math.floor(v*2)%2===0){ctx.fillStyle='#f0b3c3';ctx.fillRect(CX-280,1355,5,60);}
+  ctx.restore();
+  text('评论区告诉我 · Tell me in the comments',CX,1520,30,{font:DISPLAY,color:'#9b9dc4',alpha:a});
+}
+
+/* ---------- loop ---------- */
+function frame(){
+  if(mode==='film'){
+    const {total}=film(),t=now();
+    drawFilm(Math.max(0,t));
+    $('status').innerHTML=`成片播放中 <b>${fmt(Math.max(0,t))}</b> / ${fmt(total)}${rec?' · 正在生成视频（静音），请保持本页在前台':''}`;
+    if(t>total+.6){finish();return;}
+  }else if(mode==='solo'){
+    const t=now();drawSolo(soloItem,t);
+    if(t>soloItem.len+2.2){stopAll();return;}
+  }
+  raf=requestAnimationFrame(frame);
+}
+const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+
+function stopAll(){
+  cancelAnimationFrame(raf);
+  if(bus){try{bus.disconnect();}catch(e){}bus=null;}
+  if(rec&&rec.state!=='inactive'){rec.stop();}
+  if(spk)spk.gain.value=1;
+  mode='poster';soloItem=null;drawPoster();
+  $('btnStop').disabled=true;$('btnFilm').disabled=false;$('btnRec').disabled=false;$('btnRec').classList.remove('on');
+  document.querySelectorAll('.row').forEach(r=>r.classList.remove('playing'));
+  if(!rec)$('status').textContent='已停止。';
+}
+function finish(){stopAll();}
+
+function startFilm(){
+  const {list,E}=film();
+  if(!list.length){$('status').textContent='至少勾选一句才能播放成片。';return;}
+  ensureAudio();actx.resume();stopPlaybackOnly();newBus();
+  t0=actx.currentTime+.25;
+  list.forEach((it,k)=>scheduleMelody(it,t0+INTRO+PER*k+MEL_OFF,.2,k));
+  const vol=Math.max(.06,.22/Math.sqrt(list.length));
+  list.forEach((it,k)=>scheduleMelody(it,t0+E+ENS_MEL,vol,k));
+  mode='film';$('btnStop').disabled=false;$('btnFilm').disabled=true;$('btnRec').disabled=true;
+  raf=requestAnimationFrame(frame);
+}
+function stopPlaybackOnly(){cancelAnimationFrame(raf);if(bus){try{bus.disconnect();}catch(e){}bus=null;}}
+function solo(idx){
+  ensureAudio();actx.resume();
+  if(mode==='film')return;
+  stopPlaybackOnly();newBus();
+  soloItem=items[idx];t0=actx.currentTime+.1;
+  scheduleMelody(soloItem,t0,.22,idx);
+  mode='solo';$('btnStop').disabled=false;
+  document.querySelectorAll('.row').forEach((r,i)=>r.classList.toggle('playing',i===idx));
+  raf=requestAnimationFrame(frame);
+}
+
+/* ---------- recording ---------- */
+let rec=null,recBlob=null,recExt='webm',cancelReq=false;
+function pickMime(){
+  const c=[['video/mp4;codecs=avc1.42E01E,mp4a.40.2','mp4'],['video/mp4','mp4'],['video/webm;codecs=vp9,opus','webm'],['video/webm;codecs=vp8,opus','webm'],['video/webm','webm']];
+  for(const [m,e] of c){if(window.MediaRecorder&&MediaRecorder.isTypeSupported(m))return [m,e];}
+  return [null,null];
+}
+function startRec(){
+  if(!downloads){$('status').textContent='这个窗口不能下载文件。请在 claude.ai 里打开本页再试。';return;}
+  if(!window.MediaRecorder||!cv.captureStream){$('status').textContent='这个浏览器不支持生成视频，请换用最新版 Chrome、Edge 或 Safari。';return;}
+  ensureAudio();
+  const [mime,ext]=pickMime();
+  if(!mime){$('status').textContent='这个浏览器不支持生成视频，请换用最新版 Chrome、Edge 或 Safari。';return;}
+  const stream=new MediaStream([...cv.captureStream(30).getVideoTracks(),...recDest.stream.getAudioTracks()]);
+  const chunks=[];recExt=ext;recBlob=null;$('btnSave').hidden=true;
+  rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8e6});
+  rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
+  rec.onstop=()=>{
+    recBlob=new Blob(chunks,{type:mime});rec=null;
+    if(spk)spk.gain.value=1;
+    if(cancelReq){cancelReq=false;recBlob=null;$('status').textContent='已取消生成视频。';return;}
+    if(!recBlob.size){$('status').textContent='没有生成成功，请再试一次。';return;}
+    saveVideo();
+  };
+  spk.gain.value=0;
+  rec.start(500);
+  $('btnRec').classList.add('on');
+  startFilm();
+}
+async function saveVideo(){
+  if(!recBlob||!downloads)return;
+  const mb=(recBlob.size/1048576).toFixed(1);
+  $('status').innerHTML=`视频已生成（${mb} MB，${recExt.toUpperCase()}），请在弹出的提示里确认下载。`;
+  try{
+    await downloads.save({filename:`sound-flowers.${recExt}`,data:recBlob});
+    $('status').textContent=`已下载 sound-flowers.${recExt}（${mb} MB）。`;$('btnSave').hidden=false;
+  }catch(e){
+    const c=e&&e.code;$('btnSave').hidden=false;
+    $('status').textContent=c==='declined'?'已取消下载。视频还在，点"再次保存"即可。':c==='rate_limited'?'已有一个下载提示在等待，请稍后点"再次保存"。':'这个窗口无法下载文件，请在 claude.ai 里打开本页再试。';
+  }
+}
+let downloads=null;
+(async()=>{try{if(window.claude&&window.claude.use)downloads=await window.claude.use('downloads');}catch(e){downloads=null;}})();
+$('btnSave').addEventListener('click',saveVideo);
+
+/* ---------- list UI ---------- */
+function renderList(){
+  const L=$('list');L.innerHTML='';
+  items.forEach((it,i)=>{
+    const row=document.createElement('div');row.className='row';
+    const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!it.on;cb.id='on-'+i;cb.setAttribute('aria-label','加入成片：'+it.lang);
+    cb.addEventListener('change',()=>{it.on=cb.checked;save();if(mode==='poster')drawPoster();});
+    const dot=document.createElement('span');dot.className='dot';dot.style.background=`hsl(${it.hue},80%,68%)`;
+    const t=document.createElement('div');t.className='t';
+    const lang=document.createElement('div');lang.className='lang';lang.textContent=it.lang;
+    const tx=document.createElement('div');tx.className='txt';tx.textContent=it.text;if(it.rtl)tx.dir='rtl';
+    const lit=document.createElement('div');lit.className='lit';lit.textContent=[it.zh,it.en].filter(Boolean).join(' / ');
+    const chips=document.createElement('div');chips.className='chips';
+    it.notes.forEach(n=>{const c=document.createElement('span');c.className='chip';c.textContent=`${n.s}→${NOTE_NAMES[n.p%5]}${n.p>=5?5:4}`;chips.appendChild(c);});
+    t.append(lang,tx,lit,chips);
+    const acts=document.createElement('div');acts.className='acts';
+    const b1=document.createElement('button');b1.className='small';b1.textContent='试听';b1.addEventListener('click',()=>solo(i));
+    const b2=document.createElement('button');b2.className='small';b2.textContent='删除';b2.setAttribute('aria-label','删除 '+it.lang);
+    b2.addEventListener('click',()=>{if(mode!=='poster')return;items.splice(i,1);prep();save();renderList();drawPoster();});
+    acts.append(b1,b2);
+    row.append(cb,dot,t,acts);L.appendChild(row);
+  });
+  if(!items.length){const e=document.createElement('div');e.className='row';e.style.gridTemplateColumns='1fr';e.textContent='列表空了。在下面加一句，或刷新后清除本地记录恢复默认的 8 句。';L.appendChild(e);}
+}
+$('addForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const it={lang:$('fLang').value.trim(),text:$('fText').value.trim(),roman:$('fRoman').value.trim(),zh:$('fZh').value.trim(),en:$('fEn').value.trim(),rtl:$('fRtl').checked,on:true};
+  if(!it.lang||!it.text)return;
+  items.push(it);prep();save();renderList();
+  if(mode==='poster')drawPoster();
+  e.target.reset();
+  ensureFonts([it]).then(()=>{if(mode==='poster')drawPoster();});
+});
+$('btnFilm').addEventListener('click',startFilm);
+$('btnStop').addEventListener('click',()=>{if(rec)cancelReq=true;stopAll();});
+$('btnRec').addEventListener('click',startRec);
+
+/* ---------- fonts then first frame ---------- */
+async function ensureFonts(list){
+  if(!document.fonts||!document.fonts.load)return;
+  const all=list.map(i=>i.text+i.lang+(i.zh||'')).join('')+'我想你有几种声音如果它听起来是什么样说法不同念同一下句评论区告诉每个音节符片花瓣';
+  try{await Promise.race([Promise.all([
+    document.fonts.load('700 80px "Noto Serif SC"',all),document.fonts.load('500 40px "Noto Serif SC"',all),
+    document.fonts.load('700 80px "Noto Serif KR"',all),document.fonts.load('700 80px "Noto Naskh Arabic"',all),
+    document.fonts.load('400 32px "IBM Plex Mono"','abc'),document.fonts.load('500 32px "IBM Plex Mono"','abc')]),new Promise(r=>setTimeout(r,4000))]);}catch(e){}
+}
+window.__sf={drawFilm,drawPoster,film};
+renderList();drawPoster();
+ensureFonts(items).then(drawPoster);
+})();
+</script>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>预览</title>
+<link rel="stylesheet" href="./preview.css">
+<body>
+<header class="bar">
+  <div class="title">
+    <select id="epSelect" aria-label="选择一期"></select>
+    <span id="epMeta" class="muted"></span>
+  </div>
+  <div class="opts">
+    <label title="用草稿分辨率和帧率预览（更流畅）"><input type="checkbox" id="optDraft"> 草稿</label>
+    <label title="显示平台界面大致会遮住的区域"><input type="checkbox" id="optSafe"> 安全区</label>
+    <label title="用默认样式把字幕画进画面（对应 render --burn-subs）"><input type="checkbox" id="optBurn"> 烧录字幕</label>
+    <span id="live" class="live off" title="修改 episode / core / plugins 里的文件会自动刷新">热重载</span>
+  </div>
+</header>
+
+<main class="main">
+  <div class="stage">
+    <div class="frame" id="frame">
+      <canvas id="cv" aria-label="当前帧"></canvas>
+      <canvas id="overlay" aria-hidden="true"></canvas>
+    </div>
+  </div>
+  <aside class="side">
+    <div class="clock">
+      <div id="tc" class="tc">00:00:00</div>
+      <div id="tinfo" class="muted mono"></div>
+    </div>
+    <section class="box"><h3>场景</h3><div id="sceneInfo" class="mono"></div></section>
+    <section class="box"><h3>字幕</h3><div id="subInfo" class="sub"></div></section>
+    <section class="box"><h3>选区</h3><div id="selInfo" class="mono"></div></section>
+    <section class="box"><h3>声音</h3><div id="audioInfo" class="mono muted">混音生成中…</div></section>
+    <div id="msgs"></div>
+    <details class="box keys">
+      <summary>快捷键</summary>
+      <dl>
+        <dt>空格</dt><dd>播放 / 暂停</dd>
+        <dt>← →</dt><dd>前后 1 帧</dd>
+        <dt>⇧ ← →</dt><dd>前后 1 秒</dd>
+        <dt>[ ]</dt><dd>上 / 下一个场景</dd>
+        <dt>I O X</dt><dd>设入点 / 设出点 / 清除选区</dd>
+        <dt>P</dt><dd>试听选区（没有选区时试听当前场景）</dd>
+        <dt>L</dt><dd>循环选区</dd>
+        <dt>M</dt><dd>静音</dd>
+        <dt>Home End</dt><dd>开头 / 结尾</dd>
+        <dt>⇧ 拖动时间轴</dt><dd>框选一段</dd>
+        <dt>双击场景块</dt><dd>试听这个场景</dd>
+      </dl>
+    </details>
+  </aside>
+</main>
+
+<footer class="dock">
+  <div class="transport">
+    <button id="bStart" title="开头 (Home)">⏮</button>
+    <button id="bPrev" title="上一帧 (←)">◀︎ 1帧</button>
+    <button id="bPlay" class="primary" title="播放 / 暂停 (空格)">▶ 播放</button>
+    <button id="bNext" title="下一帧 (→)">1帧 ▶︎</button>
+    <button id="bEnd" title="结尾 (End)">⏭</button>
+    <span class="sep"></span>
+    <button id="bIn" title="设入点 (I)">入点</button>
+    <button id="bOut" title="设出点 (O)">出点</button>
+    <button id="bClear" title="清除选区 (X)">清除</button>
+    <button id="bPlaySel" title="试听选区 (P)">▶ 试听选区</button>
+    <label class="chk"><input type="checkbox" id="optLoop"> 循环</label>
+    <label class="chk"><input type="checkbox" id="optMute"> 静音</label>
+  </div>
+  <div class="tl">
+    <div class="labels"><span>时间</span><span>场景</span><span>字幕</span><span>事件</span></div>
+    <div class="lanes" id="lanes">
+      <div class="lane ruler" id="ruler"></div>
+      <div class="lane" id="trkScenes"></div>
+      <div class="lane" id="trkSubs"></div>
+      <div class="lane" id="trkEvents"></div>
+      <div class="selection" id="sel" hidden></div>
+      <div class="head" id="head"></div>
+    </div>
+  </div>
+</footer>
+<script type="module" src="./preview.js"></script>
+</body>
+</html>

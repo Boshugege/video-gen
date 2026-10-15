@@ -1,0 +1,22 @@
+# 依赖
+node_modules/
+
+# 渲染产物：成片、音频、封面、字幕都在 out/，不进 git
+out/
+
+# Google Fonts 等下载缓存
+.cache/
+
+# 媒体文件一律不追踪（素材请放网盘或 Git LFS）
+*.mp4
+*.mov
+*.m4a
+*.webm
+*.wav
+*.aiff
+*.mp3
+
+# 系统 / 编辑器
+.DS_Store
+*.log
+.claude/settings.local.json
