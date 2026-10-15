@@ -7,6 +7,26 @@
 
 不边播边录，所以没有卡顿，也没有音画不同步。
 
+## 新会话从这里开始
+
+这个仓库会在不同的 Claude Code 会话里接力开发，本文件就是交接文档。每次开工：
+1. 读完本文件。想知道某个设计为什么这样定，看 [docs/decisions.md](docs/decisions.md)。
+2. `npm run doctor` 确认依赖齐全；`git log --oneline -10` 看最近做了什么。
+3. 做新一期按下文"新增一期的标准步骤"；项目技能 `.claude/skills/new-episode/` 带着同一套流程。改工具箱按下面的"工作约定"。
+
+**当前状态（2026-10-15）**
+- 工具箱已完成并验证：逐帧渲染、离线混音、ffmpeg 封装与校验、双语 SRT、封面、预览页、素材加载（图片、背景音乐、配音）、一条命令跑完的回归测试。
+- 已发布：`2026-W42-sound-flowers`（第一期，从原型迁移，与原型逐像素一致）。
+- 待办和已知问题见文末"待办与已知问题"。
+
+**工作约定**
+- 用中文沟通；代码注释、文档、命令行输出也用中文。
+- 新功能或较大的改动，先给用户一个简短方案，确认后再动手；小修小补直接做。
+- 改了 `core/`、`plugins/`、`presets/`，提交前必须 `npm run regress` 全部通过。只改某一期时，至少渲染那一期并确认校验全部 ✓。
+- 每次改动后同步更新本文件（命令、模块清单、当前状态、待办）；有取舍的决定追加到 `docs/decisions.md`。下一个会话只能靠这些文件了解上下文。
+- git：直接提交到 `main` 并推送到 origin（github.com/Boshugege/video-gen，公开仓库），提交信息用中文。成片和音频素材不提交。
+- 已发布期数的画面是用户的作品：没有用户明确要求，不要改动。
+
 ## 核心原则（改代码前先读）
 
 1. **确定性渲染**：画面只由 `t` 决定。渲染器会**乱序、并行**地调用 `renderFrame`（6 个无头 Chromium 页面各画一部分帧），所以：
@@ -32,7 +52,8 @@
 | `npm run assets -- <episode>` | 检查这一期的素材：文件在不在、时长或尺寸、sha256、是否进 git、来源和授权 |
 | `npm run check:sync -- <episode> [--draft] [--expect N]` | 检测成片里的闪白和嘀声，逐对比较时间差（配合 `_sync-test` 使用） |
 | `npm run plugins [-- --md]` | 列出所有插件 |
-| `npm test` | 单元测试：时间轴、SRT、WAV、接口，并检查每一期和每个插件都能正常加载 |
+| `npm test` | 单元测试：时间轴、SRT、WAV、素材、接口，并检查每一期和每个插件都能正常加载 |
+| `npm run regress [-- --draft]` | 整套回归：单元测试 → 两个同步测试 → 第一期与原型对比，约 30 秒。改了 core/plugins/presets 必跑 |
 
 输出目录为 `out/<episode>/`，草稿在 `out/<episode>/draft/`：
 - `video.mp4`
@@ -66,6 +87,9 @@ episodes/
   _asset-test/        素材测试：图片 + 背景音乐 + wav/mp3/m4a 配音片段（素材由 make-assets.mjs 合成）
   2026-W42-sound-flowers/   第一期
 cli/                  npm 命令入口（Node）
+docs/decisions.md     决策记录：每个设计取舍的日期和理由
+.claude/skills/new-episode/   项目技能：做新一期的标准流程
+.claude/launch.json   预览服务配置（Claude Code 浏览器面板用）
 test/                 node:test 单元测试
 .githooks/pre-commit  大文件拦截（npm install 时通过 prepare 自动启用）
 ```
@@ -236,9 +260,12 @@ export default defineEpisode({
 5. `npm run render -- <id> --draft` 出样，手机上看一遍。
 6. `npm run render -- <id>` 出成片，确认校验全部 ✓、没有字体警告。
 7. 上传 `out/<id>/video.mp4`，封面用 `cover.png`，字幕用 `subtitles.srt`。
-8. `git add` 代码（产物不会被加进去），提交并推送。
+8. 更新本文件的"当前状态"和 README 的期数表；有取舍的决定写进 `docs/decisions.md`。
+9. `git add` 代码（成片和音频素材不会被加进去），提交并推送。
 
 ## 验收与回归
+
+一条命令跑完下面全部：`npm run regress`（约 30 秒；加 `--draft` 时两个同步测试用草稿渲染，更快）。
 
 - `npm test`：单元测试。
 - 音画同步：先 `npm run render -- _sync-test`，再 `npm run check:sync -- _sync-test --expect 11`；草稿模式两条命令都加 `--draft`。
@@ -249,7 +276,7 @@ export default defineEpisode({
 - 第一期与原型对比：`node episodes/2026-W42-sound-flowers/verify-prototype.mjs`。
   - 2026-10-15 实测：14 个时间点加封面共 15 帧，与原型逐像素完全相同。
   - 对比拼图保存在 `out/2026-W42-sound-flowers/prototype-compare.png`。
-- 改动 core 或 plugins 后，至少重跑两个同步测试（`_sync-test` 和 `_asset-test`）以及第一期的原型对比。
+- 改动 core、plugins 或 presets 后，跑 `npm run regress`，全部通过才提交。
 
 ## 环境与已知事项
 
@@ -259,4 +286,19 @@ export default defineEpisode({
   - 第一期 1725 帧成片约 50 秒，草稿约 18 秒；
   - 瓶颈是 PNG 编码和 x264。
 - 预览页的声音与成片相同：加载时离线生成整段混音，再从任意位置截取播放。
-- 第一期保留了原型的一个小跳变：53 秒 ensemble→outro 时，偶数序号的花朝向会跳一下（原型里 outro 的旋转公式和 ensemble 不连续）。为了与原型逐像素一致，暂时没有修。
+
+## 待办与已知问题
+
+**已知问题（用户已决定不修）**
+- 第一期有两处跳变，都是原型里就有的。用户 2026-10-15 决定第一期保持原样：
+  - 53 秒（ensemble→outro）：偶数序号的花朝向会跳一下，因为 outro 的旋转公式和 ensemble 不连续；
+  - 44 秒（sentence-8→ensemble）：顶部缩略图整体转一个小角度。
+- 以后的期数如果复用这段逻辑，注意让旋转连续。
+
+**还不支持（按需再做，做之前先和用户确认方案）**
+- 视频片段素材（实拍画面、录屏）：需要逐帧精确解码。可以考虑渲染前用 ffmpeg 抽成图片序列，再按 t 取帧。
+- 配音合成（TTS）。目前只能用录好的音频文件。
+- 转场、粒子、图表、Logo 动画等视觉组件。
+- 同一期同时导出多种画幅；小红书 3:4 等平台专属封面尺寸。
+- 烧录字幕只有一种默认样式（`--burn-subs`）。
+- 只在 macOS（Apple M1）上验证过。

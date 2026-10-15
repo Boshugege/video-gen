@@ -18,7 +18,8 @@
     "assets": "node cli/assets.mjs",
     "check:sync": "node cli/check-sync.mjs",
     "plugins": "node cli/plugins.mjs",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "regress": "node cli/regress.mjs"
   },
   "devDependencies": {
     "playwright": "1.63.0"

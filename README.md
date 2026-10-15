@@ -14,9 +14,11 @@ npm run new -- W43 rain-letters                 # 新建一期
 npm run preview -- 2026-W43-rain-letters        # 预览：拖时间轴、逐帧、只试听某一段
 npm run render -- 2026-W43-rain-letters --draft # 540×960 @15fps 快速出样
 npm run render -- 2026-W43-rain-letters         # 成片 → out/<episode>/video.mp4、subtitles.srt、cover.png
+npm run regress                                 # 改了工具箱之后：整套回归（单元测试、音画同步、与原型逐像素对比）
 ```
 
-episode 接口、模块清单和每周流程见 [CLAUDE.md](CLAUDE.md)。
+- episode 接口、模块清单、每周流程、当前状态和待办：[CLAUDE.md](CLAUDE.md)
+- 每个设计取舍的日期和理由：[docs/decisions.md](docs/decisions.md)
 
 ## 已有的期数
 
